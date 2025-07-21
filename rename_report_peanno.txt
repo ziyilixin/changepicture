@@ -1,0 +1,52 @@
+图片重命名报告 - 项目: peanno
+==================================================
+
+重命名映射:
+  home_middle_bg1 → peanno_home_middle_bg1
+  home_photo6 → peanno_home_photo6
+  home_woman → peanno_home_woman
+  home_big_bg1 → peanno_home_big_bg1
+  home_man → peanno_home_man
+  home_photo1 → peanno_home_photo1
+  home_big_bg6 → peanno_home_big_bg6
+  home_middle_bg6 → peanno_home_middle_bg6
+  home_big_bg3 → peanno_home_big_bg3
+  home_big_bg2 → peanno_home_big_bg2
+  home_photo4 → peanno_home_photo4
+  home_photo5 → peanno_home_photo5
+  home_chat → peanno_home_chat
+  home_middle_bg2 → peanno_home_middle_bg2
+  home_middle_bg3 → peanno_home_middle_bg3
+  home_middle_bg5 → peanno_home_middle_bg5
+  home_middle_bg4 → peanno_home_middle_bg4
+  home_big_bg4 → peanno_home_big_bg4
+  home_big_bg5 → peanno_home_big_bg5
+  home_photo3 → peanno_home_photo3
+  home_photo2 → peanno_home_photo2
+  chat_bubble_right → peanno_chat_bubble_right
+  chat_noData → peanno_chat_noData
+  chat_bubble_left → peanno_chat_bubble_left
+  TabBar_mine_normal → peanno_TabBar_mine_normal
+  TabBar_chat_select → peanno_TabBar_chat_select
+  TabBar_home_select → peanno_TabBar_home_select
+  TabBar_mine_select → peanno_TabBar_mine_select
+  TabBar_chat_normal → peanno_TabBar_chat_normal
+  TabBar_home_normal → peanno_TabBar_home_normal
+  common_coin → peanno_common_coin
+  common_back → peanno_common_back
+  common_voice → peanno_common_voice
+  common_picture → peanno_common_picture
+  common_bg → peanno_common_bg
+  mine_signout → peanno_mine_signout
+  mine_privacy → peanno_mine_privacy
+  mine_service → peanno_mine_service
+  mine_coin → peanno_mine_coin
+  mine_decline → peanno_mine_decline
+  mine_coin_bg → peanno_mine_coin_bg
+  login_apple_bg → peanno_login_apple_bg
+  login_logo → peanno_login_logo
+  login_normal → peanno_login_normal
+  login_qucick_bg → peanno_login_qucick_bg
+  login_select → peanno_login_select
+
+总共重命名了 46 个图片
