@@ -54,6 +54,32 @@ class ImageRenamer:
         new_name = f"{self.project_name}_{base_name}.imageset"
         return new_name
     
+    def scan_existing_renamed_images(self):
+        """扫描已重命名的图片，提取映射关系"""
+        print(f"扫描已重命名的图片...")
+        
+        folders = self.get_image_folders()
+        
+        for folder in folders:
+            images = self.get_images_in_folder(folder)
+            
+            for image in images:
+                image_name = image.name
+                base_name = image_name.replace('.imageset', '')
+                
+                # 如果图片已经包含项目前缀
+                if base_name.startswith(f"{self.project_name}_"):
+                    # 提取原始名称
+                    original_name = base_name[len(f"{self.project_name}_"):]
+                    
+                    # 记录映射关系
+                    self.old_to_new[original_name] = base_name
+                    self.rename_mapping[original_name] = base_name
+                    print(f"  发现已重命名: {original_name} → {base_name}")
+        
+        print(f"发现 {len(self.old_to_new)} 个已重命名的图片")
+        return self.old_to_new
+    
     def rename_images(self):
         """重命名所有图片文件夹"""
         print(f"开始重命名图片，项目前缀: {self.project_name}")
@@ -98,7 +124,7 @@ class ImageRenamer:
         """更新代码中的图片引用"""
         print(f"\n开始更新代码中的图片引用...")
         
-        # 查找所有 .m 和 .swift 文件
+        # 查找所有 .m、.swift 和 .json 文件
         code_files = []
         for root, dirs, files in os.walk(project_root):
             # 跳过 Pods 目录
@@ -106,7 +132,7 @@ class ImageRenamer:
                 continue
                 
             for file in files:
-                if file.endswith(('.m', '.swift')):
+                if file.endswith(('.m', '.swift', '.json')):
                     code_files.append(os.path.join(root, file))
         
         total_updated = 0
@@ -155,6 +181,13 @@ class ImageRenamer:
                     if re.search(pattern5, content):
                         content = re.sub(pattern5, replacement5, content)
                         file_updated = True
+                    
+                    # 匹配JSON文件中的图片名称（带引号）
+                    pattern6 = f'"{re.escape(old_name)}"'
+                    replacement6 = f'"{new_name}"'
+                    if re.search(pattern6, content):
+                        content = re.sub(pattern6, replacement6, content)
+                        file_updated = True
                 
                 if file_updated:
                     with open(file_path, 'w', encoding='utf-8') as f:
@@ -166,6 +199,52 @@ class ImageRenamer:
                 print(f"  ✗ 更新失败 {file_path}: {e}")
         
         print(f"\n总共更新了 {total_updated} 个代码文件")
+    
+    def update_json_files(self, project_root):
+        """专门更新JSON文件中的图片引用"""
+        print(f"\n开始更新JSON文件中的图片引用...")
+        
+        # 查找所有 .json 文件
+        json_files = []
+        for root, dirs, files in os.walk(project_root):
+            # 跳过 Pods 目录
+            if 'Pods' in root:
+                continue
+                
+            for file in files:
+                if file.endswith('.json'):
+                    json_files.append(os.path.join(root, file))
+        
+        total_updated = 0
+        
+        for file_path in json_files:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                original_content = content
+                file_updated = False
+                
+                # 更新JSON文件中的图片名称
+                for old_name, new_name in self.old_to_new.items():
+                    # 匹配JSON文件中的图片名称（带引号）
+                    pattern = f'"{re.escape(old_name)}"'
+                    replacement = f'"{new_name}"'
+                    if re.search(pattern, content):
+                        content = re.sub(pattern, replacement, content)
+                        file_updated = True
+                        print(f"    {old_name} → {new_name}")
+                
+                if file_updated:
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write(content)
+                    print(f"  ✓ 更新: {os.path.relpath(file_path, project_root)}")
+                    total_updated += 1
+                    
+            except Exception as e:
+                print(f"  ✗ 更新失败 {file_path}: {e}")
+        
+        print(f"\n总共更新了 {total_updated} 个JSON文件")
     
     def generate_report(self):
         """生成重命名报告"""
@@ -189,6 +268,7 @@ def main():
     parser.add_argument('assets_path', help='Assets.xcassets 路径')
     parser.add_argument('--project-root', help='项目根目录路径（用于更新代码引用）')
     parser.add_argument('--dry-run', action='store_true', help='仅显示将要进行的操作，不实际执行')
+    parser.add_argument('--json-only', action='store_true', help='仅更新JSON文件中的图片引用，不重命名图片')
     
     args = parser.parse_args()
     
@@ -225,19 +305,31 @@ def main():
     renamer = ImageRenamer(args.project_name, args.assets_path)
     
     try:
-        # 重命名图片
-        mapping = renamer.rename_images()
-        
-        # 更新代码引用
-        if args.project_root and os.path.exists(args.project_root):
-            renamer.update_code_references(args.project_root)
-        
-        # 生成报告
-        renamer.generate_report()
-        
-        print(f"\n✅ 图片重命名完成！")
-        print(f"项目前缀: {args.project_name}")
-        print(f"重命名了 {len(mapping)} 个图片")
+        if args.json_only:
+            # 仅更新JSON文件
+            print("=== 仅更新JSON文件模式 ===")
+            if args.project_root and os.path.exists(args.project_root):
+                # 先扫描已重命名的图片
+                renamer.scan_existing_renamed_images()
+                # 然后更新JSON文件
+                renamer.update_json_files(args.project_root)
+            else:
+                print("错误: 需要指定 --project-root 参数")
+                sys.exit(1)
+        else:
+            # 重命名图片
+            mapping = renamer.rename_images()
+            
+            # 更新代码引用
+            if args.project_root and os.path.exists(args.project_root):
+                renamer.update_code_references(args.project_root)
+            
+            # 生成报告
+            renamer.generate_report()
+            
+            print(f"\n✅ 图片重命名完成！")
+            print(f"项目前缀: {args.project_name}")
+            print(f"重命名了 {len(mapping)} 个图片")
         
     except Exception as e:
         print(f"❌ 执行失败: {e}")
